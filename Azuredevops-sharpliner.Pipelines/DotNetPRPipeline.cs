@@ -1,5 +1,6 @@
 using Sharpliner.AzureDevOps;
 using Sharpliner.AzureDevOps.Tasks;
+using Sharpliner;
 
 namespace Azuredevops_sharpliner.Pipelines;
 
@@ -13,12 +14,14 @@ public class DotNetPRPipeline : SingleStagePipelineDefinition
     private static readonly BuildPool BuildPool = BuildPool.UbuntuLatest;
     private readonly string _targetFile;
     
-    public DotNetPRPipeline(string targetFile = "dotnet-pr.yml")
+    public DotNetPRPipeline(string fileName = "dotnet-pr.yml", string folder = ".azdo")
     {
-        _targetFile = targetFile;
+        _targetFile = $"{folder}/{fileName}";
     }
     
     public override string TargetFile => _targetFile;
+
+    public override TargetPathType TargetPathType => TargetPathType.RelativeToGitRoot;
 
     public override SingleStagePipeline Pipeline => new()
     {

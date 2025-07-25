@@ -1,5 +1,6 @@
 using Sharpliner.AzureDevOps;
 using Sharpliner.AzureDevOps.Tasks;
+using Sharpliner;
 
 namespace Azuredevops_sharpliner.Pipelines;
 
@@ -13,12 +14,14 @@ public class DotNetBuildPipeline : PipelineDefinition
     private static readonly BuildPool PublishPool = BuildPool.UbuntuLatest;
     private readonly string _targetFile;
     
-    public DotNetBuildPipeline(string targetFile = "dotnet-build.yml")
+    public DotNetBuildPipeline(string fileName = "dotnet-build.yml", string folder = ".azdo")
     {
-        _targetFile = targetFile;
+        _targetFile = $"{folder}/{fileName}";
     }
     
     public override string TargetFile => _targetFile;
+
+    public override TargetPathType TargetPathType => TargetPathType.RelativeToGitRoot;
 
     public override Pipeline Pipeline => new()
     {
