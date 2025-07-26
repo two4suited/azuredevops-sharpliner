@@ -24,13 +24,13 @@ repo-root/
 
 **Base Pipeline Classes:**
 - **DotNetBuildPipeline**: Multi-stage pipeline with Build and Publish stages
-  - Constructor: `DotNetBuildPipeline(fileName = "dotnet-build.yml", folder = ".azdo")`
-  - Generates: `.azdo/dotnet-build.yml` by default
+  - Constructor: `DotNetBuildPipeline(fileName = "azure-pipelines.yml", folder = ".azdo")`
+  - Generates: `.azdo/azure-pipelines.yml` by default
   - Features: Flexible filename and folder configuration
   
 - **DotNetPRPipeline**: Single-stage pull request validation pipeline
-  - Constructor: `DotNetPRPipeline(fileName = "dotnet-pr.yml", folder = ".azdo")`
-  - Generates: `.azdo/dotnet-pr.yml` by default
+  - Constructor: `DotNetPRPipeline(fileName = "azure-pipelines-pr.yml", folder = ".azdo")`
+  - Generates: `.azdo/azure-pipelines-pr.yml` by default
   - Features: Restore, build, and test operations only
 
 **Supporting Components:**
@@ -39,9 +39,15 @@ repo-root/
 
 ### Generator Project (`Azuredevops-sharpliner.Generator`)
 
-Contains concrete pipeline instances that inherit from the base classes:
+Contains concrete pipeline instances that use the base class defaults:
 - **ProjectPipeline**: Main build pipeline → `.azdo/azure-pipelines.yml`
 - **ProjectPRPipeline**: PR validation pipeline → `.azdo/azure-pipelines-pr.yml`
+
+Both classes use simple inheritance with no customization:
+```csharp
+public class ProjectPipeline : DotNetBuildPipeline{}
+public class ProjectPRPipeline : DotNetPRPipeline{}
+```
 
 ## Usage
 
@@ -73,7 +79,7 @@ The build process automatically creates:
 // Default configuration (recommended)
 public class MyBuildPipeline : DotNetBuildPipeline 
 {
-    // Generates: .azdo/dotnet-build.yml
+    // Generates: .azdo/azure-pipelines.yml
 }
 
 // Custom filename, default folder
@@ -87,7 +93,7 @@ public class MyBuildPipeline : DotNetBuildPipeline
 public class MyBuildPipeline : DotNetBuildPipeline
 {
     public MyBuildPipeline() : base(folder: "pipelines") { }
-    // Generates: pipelines/dotnet-build.yml
+    // Generates: pipelines/azure-pipelines.yml
 }
 
 // Both custom
