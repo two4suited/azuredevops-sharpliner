@@ -1,109 +1,175 @@
-# Azure DevOps Pipeline Generator
+# Azure DevOps Pipeline Generator with Sharpliner
 
-This solution contains a Sharpliner-based Azure DevOps pipeline generator that creates YAML pipeline files in a `.azdo` directory.
+This solution uses **Sharpliner** - a C# DSL (Domain Specific Language) to generate Azure DevOps pipeline YAML files. All generated pipelines are placed in a `.azdo` directory at the repository root.
 
-## Structure
+## Project Structure
 
-- **Azuredevops-sharpliner.Pipelines/**: Library project containing pipeline definitions using Sharpliner
-- **Azuredevops-sharpliner.Generator/**: Console application that generates YAML files from the pipeline definitions
+```
+repo-root/
+├── Azuredevops-sharpliner.Pipelines.sln         # Main solution file
+├── create-sharpliner-project.ps1                # Project scaffolding script
+├── generate-pipelines.sh                        # Pipeline generation script
+└── Azuredevops-sharpliner.Pipelines/            # Pipeline definitions library
+    ├── DotNetBuildPipeline.cs                   # Multi-stage build pipeline
+    ├── DotNetPRPipeline.cs                      # PR validation pipeline
+    ├── DotNetTasks.cs                           # Reusable .NET tasks
+    └── BuildPools.cs                            # Azure-hosted pool definitions
+└── Azuredevops-sharpliner.Generator/            # Pipeline instances
+    └── Program.cs                               # Concrete pipeline definitions
+```
 
 ## Components
 
 ### Pipeline Library (`Azuredevops-sharpliner.Pipelines`)
 
+**Base Pipeline Classes:**
 - **DotNetBuildPipeline**: Multi-stage pipeline with Build and Publish stages
-- **DotNetPRPipeline**: Single-stage pull request validation pipeline (restore, build, test)
+  - Constructor: `DotNetBuildPipeline(fileName = "dotnet-build.yml", folder = ".azdo")`
+  - Generates: `.azdo/dotnet-build.yml` by default
+  - Features: Flexible filename and folder configuration
+  
+- **DotNetPRPipeline**: Single-stage pull request validation pipeline
+  - Constructor: `DotNetPRPipeline(fileName = "dotnet-pr.yml", folder = ".azdo")`
+  - Generates: `.azdo/dotnet-pr.yml` by default
+  - Features: Restore, build, and test operations only
+
+**Supporting Components:**
 - **DotNetTasks**: Reusable .NET task definitions (Restore, Build, Test, Publish)
 - **BuildPools**: Type-safe enum for Azure DevOps hosted pools
 
-### Generator Console App (`Azuredevops-sharpliner.Generator`)
+### Generator Project (`Azuredevops-sharpliner.Generator`)
 
-The generator application:
-1. Creates a `.azdo` directory in the current working directory
-2. Supports generating all pipelines or specific pipelines by name
-3. Allows custom target filenames for generated YAML files
-4. Provides detailed logging and file size information
-
-### Command Line Options
-
-- **No arguments**: Generates all available pipelines with default filenames
-- **Pipeline name**: Generates specific pipeline (build, pr)
-- **Pipeline name + filename**: Generates specific pipeline with custom filename
-
-Available pipeline names:
-- `build` or `dotnetbuild` - Multi-stage build and publish pipeline
-- `pr` or `dotnetpr` - Single-stage pull request validation pipeline
+Contains concrete pipeline instances that inherit from the base classes:
+- **ProjectPipeline**: Main build pipeline → `.azdo/azure-pipelines.yml`
+- **ProjectPRPipeline**: PR validation pipeline → `.azdo/azure-pipelines-pr.yml`
 
 ## Usage
 
-### Run the Generator
+### Quick Start
 
 ```bash
 # Build the solution
 dotnet build
 
-# Generate all pipelines (default)
-dotnet run --project Azuredevops-sharpliner.Generator/Azuredevops-sharpliner.Generator.csproj
+# Generate pipeline files (using MSBuild integration)
+dotnet build  # YAML files are generated automatically during build
 
-# Generate specific pipeline
-dotnet run --project Azuredevops-sharpliner.Generator/Azuredevops-sharpliner.Generator.csproj -- build
-dotnet run --project Azuredevops-sharpliner.Generator/Azuredevops-sharpliner.Generator.csproj -- pr
-
-# Generate with custom filename
-dotnet run --project Azuredevops-sharpliner.Generator/Azuredevops-sharpliner.Generator.csproj -- build my-build-pipeline.yml
-dotnet run --project Azuredevops-sharpliner.Generator/Azuredevops-sharpliner.Generator.csproj -- pr my-pr-pipeline.yml
-
-# Using the convenience script
-./generate-pipelines.sh              # Generate all
-./generate-pipelines.sh build        # Generate build pipeline only
-./generate-pipelines.sh pr custom.yml # Generate PR pipeline with custom name
+# Or use the convenience script
+./generate-pipelines.sh
 ```
 
 ### Generated Output
 
-The generator creates:
-- `.azdo/` directory containing all generated pipeline YAML files
-- `dotnet-build.yml` - Multi-stage .NET build and publish pipeline
-- `dotnet-pr.yml` - Single-stage pull request validation pipeline
+The build process automatically creates:
+- `.azdo/` directory at repository root
+- `azure-pipelines.yml` - Multi-stage .NET build and publish pipeline
+- `azure-pipelines-pr.yml` - Single-stage pull request validation pipeline
 
-### Example Output
+### Pipeline Configuration Examples
 
-```
-🚀 Azure DevOps Pipeline Generator
-==================================
-📁 Created directory: /path/to/project/.azdo
-🔄 Generating pipeline definitions...
-📋 Found 2 pipeline definition(s)
-🔨 Processing: DotNetBuildPipeline
-✅ Generated: .azdo/dotnet-build.yml
-🔨 Processing: DotNetPRPipeline
-✅ Generated: .azdo/dotnet-pr.yml
+**Creating custom pipeline instances:**
 
-📊 Generation Summary
-====================
-📁 Output Directory: /path/to/project/.azdo
-📄 Files Generated: 2
+```csharp
+// Default configuration (recommended)
+public class MyBuildPipeline : DotNetBuildPipeline 
+{
+    // Generates: .azdo/dotnet-build.yml
+}
 
-📋 Generated Files:
-   • .azdo/dotnet-build.yml (1,486 bytes)
-   • .azdo/dotnet-pr.yml (627 bytes)
+// Custom filename, default folder
+public class MyBuildPipeline : DotNetBuildPipeline
+{
+    public MyBuildPipeline() : base("my-custom-build.yml") { }
+    // Generates: .azdo/my-custom-build.yml
+}
 
-🎉 Pipeline generation completed successfully!
+// Custom folder, default filename
+public class MyBuildPipeline : DotNetBuildPipeline
+{
+    public MyBuildPipeline() : base(folder: "pipelines") { }
+    // Generates: pipelines/dotnet-build.yml
+}
+
+// Both custom
+public class MyBuildPipeline : DotNetBuildPipeline
+{
+    public MyBuildPipeline() : base("build.yml", "ci-cd") { }
+    // Generates: ci-cd/build.yml
+}
 ```
 
 ## Adding New Pipelines
 
-To add new pipeline definitions:
+### Option 1: Create New Pipeline Class (Recommended)
 
-1. Create a new class in the `Azuredevops-sharpliner.Pipelines` project
-2. Inherit from `PipelineDefinition` (multi-stage) or `SingleStagePipelineDefinition` (single stage)
-3. Implement the required properties and methods
-4. The generator will automatically discover and process the new pipeline
+1. **In `Azuredevops-sharpliner.Pipelines` project**, create a new pipeline class:
 
-## Features
+```csharp
+public class MyCustomPipeline : SimpleYamlPipeline
+{
+    public override string TargetFile => ".azdo/my-custom-pipeline.yml";
+    public override TargetPathType TargetPathType => TargetPathType.RelativeToGitRoot;
+    
+    public override SingleStagePipeline Pipeline => new()
+    {
+        Jobs = 
+        {
+            new Job("MyJob")
+            {
+                Pool = new HostedPool("ubuntu-latest"),
+                Steps = 
+                {
+                    Checkout.Self,
+                    // Add your steps here
+                }
+            }
+        }
+    };
+}
+```
 
-- **Automatic Discovery**: Finds all pipeline definitions using reflection
-- **Type Safety**: Uses enums for build pools and standardized task definitions
-- **Modular Design**: Separated concerns with reusable components
-- **Error Handling**: Comprehensive error reporting and logging
-- **File Management**: Automatic directory creation and file output management
+2. **In `Azuredevops-sharpliner.Generator` project**, create an instance:
+
+```csharp
+public class MyProjectPipeline : MyCustomPipeline { }
+```
+
+### Option 2: Extend Existing Base Classes
+
+```csharp
+// For .NET projects, extend the base classes
+public class MySpecialBuildPipeline : DotNetBuildPipeline
+{
+    public MySpecialBuildPipeline() : base("special-build.yml", "custom-folder") { }
+}
+```
+
+## Key Features
+
+- **MSBuild Integration**: YAML files generated automatically during `dotnet build`
+- **Git Root Placement**: All pipelines placed relative to repository root (not project folder)
+- **Flexible Configuration**: Separate filename and folder parameters
+- **Type Safety**: C# classes with compile-time validation
+- **Reusable Components**: Shared tasks, pools, and pipeline patterns
+- **Sharpliner DSL**: Full access to Sharpliner's Azure DevOps pipeline features
+
+## Dependencies
+
+- **.NET 9.0**: Target framework
+- **Sharpliner 1.8.1**: Core DSL for pipeline definitions
+- **Microsoft.Build.Framework/Utilities.Core**: MSBuild integration
+- **YamlDotNet 16.3.0**: YAML serialization
+
+## Development Workflow
+
+```bash
+# 1. Make changes to pipeline definitions
+# 2. Build solution (generates YAML files)
+dotnet build
+
+# 3. Commit both C# source and generated YAML files
+git add .
+git commit -m "Update pipeline definitions"
+```
+
+The generated YAML files should be committed to source control for transparency and Azure DevOps integration.
