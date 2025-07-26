@@ -13,8 +13,8 @@ public class DotNetPRPipeline : SingleStagePipelineDefinition
     // Configuration for the pipeline
     private static readonly BuildPool BuildPool = BuildPool.UbuntuLatest;
     private readonly string _targetFile;
-    
-    public DotNetPRPipeline(string fileName = "dotnet-pr.yml", string folder = ".azdo")
+
+    public DotNetPRPipeline(string fileName = "azure-pipelines-pr.yml", string folder = ".azdo")
     {
         _targetFile = $"{folder}/{fileName}";
     }

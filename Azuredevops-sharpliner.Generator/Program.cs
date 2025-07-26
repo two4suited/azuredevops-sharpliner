@@ -4,5 +4,8 @@ using System.Reflection;
 
 namespace Azuredevops_sharpliner.Generator;
 
-public class ProjectPipeline : DotNetBuildPipeline{ }
-public class ProjectPRPipeline : DotNetPRPipeline{ }
+
+public class ProjectPipeline : DotNetBuildPipeline{}
+public class ProjectPRPipeline : DotNetPRPipeline{}
+
+

@@ -13,8 +13,8 @@ public class DotNetBuildPipeline : PipelineDefinition
     private static readonly BuildPool BuildPool = BuildPool.UbuntuLatest;
     private static readonly BuildPool PublishPool = BuildPool.UbuntuLatest;
     private readonly string _targetFile;
-    
-    public DotNetBuildPipeline(string fileName = "dotnet-build.yml", string folder = ".azdo")
+
+    public DotNetBuildPipeline(string fileName = "azure-pipelines.yml", string folder = ".azdo")
     {
         _targetFile = $"{folder}/{fileName}";
     }
