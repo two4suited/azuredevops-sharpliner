@@ -54,11 +54,11 @@ public class ProjectPRPipeline : DotNetPRPipeline{}
 ### Quick Start
 
 ```bash
-# Build the solution
-dotnet build
+# Build the Generator project to generate pipeline files
+dotnet build Azuredevops-sharpliner.Generator
 
-# Generate pipeline files (using MSBuild integration)
-dotnet build  # YAML files are generated automatically during build
+# Or build the entire solution
+dotnet build
 
 # Or use the convenience script
 ./generate-pipelines.sh
@@ -66,7 +66,7 @@ dotnet build  # YAML files are generated automatically during build
 
 ### Generated Output
 
-The build process automatically creates:
+Building the Generator project automatically creates:
 - `.azdo/` directory at repository root
 - `azure-pipelines.yml` - Multi-stage .NET build and publish pipeline
 - `azure-pipelines-pr.yml` - Single-stage pull request validation pipeline
@@ -170,8 +170,8 @@ public class MySpecialBuildPipeline : DotNetBuildPipeline
 
 ```bash
 # 1. Make changes to pipeline definitions
-# 2. Build solution (generates YAML files)
-dotnet build
+# 2. Build Generator project to generate YAML files
+dotnet build Azuredevops-sharpliner.Generator
 
 # 3. Commit both C# source and generated YAML files
 git add .
