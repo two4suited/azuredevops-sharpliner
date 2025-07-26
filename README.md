@@ -57,11 +57,7 @@ public class ProjectPRPipeline : DotNetPRPipeline{}
 # Build the Generator project to generate pipeline files
 dotnet build Azuredevops-sharpliner.Generator
 
-# Or build the entire solution
-dotnet build
 
-# Or use the convenience script
-./generate-pipelines.sh
 ```
 
 ### Generated Output
